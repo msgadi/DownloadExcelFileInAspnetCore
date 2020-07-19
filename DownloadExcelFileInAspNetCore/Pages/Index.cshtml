@@ -1,0 +1,52 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Download Excel File in ASP.NET Core 3.1 Using Closed XML";
+}
+
+<div class="text-center">
+    <h5 class="display-5 mb-5">Download Excel File in ASP.NET Core 3.1 Using Closed XML and Jquery(Using Ajax Request way!)</h5>
+    <button type="button" class="btn btn-primary text-center" onclick="downloadExcel()">Click here to download excel</button>
+</div>
+ 
+<script src="~/js/FileSaver.js"></script>
+<script type="text/javascript">
+    function downloadExcel() { 
+        $.ajax({
+            type: "GET",
+            url: "/Index?handler=DownloadExcel",
+            contentType: "application/json; charset=utf-8",
+            headers: {
+                RequestVerificationToken:
+                    $('input:hidden[name="__RequestVerificationToken"]').val()
+            }
+        })
+            .done(function (result) {
+                if (result) {
+                    var blob = new Blob([base64toBlob(result.data, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')], {});
+                    saveAs(blob, result.fileName);
+                }
+            });
+
+    }
+
+    function base64toBlob(base64Data, contentType) {
+        contentType = contentType || '';
+        let sliceSize = 1024;
+        let byteCharacters = atob(base64Data);
+        let bytesLength = byteCharacters.length;
+        let slicesCount = Math.ceil(bytesLength / sliceSize);
+        let byteArrays = new Array(slicesCount);
+        for (let sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
+            let begin = sliceIndex * sliceSize;
+            let end = Math.min(begin + sliceSize, bytesLength);
+
+            let bytes = new Array(end - begin);
+            for (var offset = begin, i = 0; offset < end; ++i, ++offset) {
+                bytes[i] = byteCharacters[offset].charCodeAt(0);
+            }
+            byteArrays[sliceIndex] = new Uint8Array(bytes);
+        }
+        return new Blob(byteArrays, { type: contentType });
+    }
+</script>
